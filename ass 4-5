@@ -1,0 +1,300 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <iomanip>
+using namespace std;
+struct Product
+{
+    int id;
+    string name;
+    string category;
+    double price;
+    int stock;
+};
+struct Sale
+{
+    int productId;
+    string productName;
+    int quantity;
+    double totalCost;
+};
+vector<Product> products;
+vector<Sale> sales;
+void loadProducts()
+{
+    ifstream file("products.txt");
+    if (!file) return;
+    Product p;
+    while (file >> p.id >> p.price >> p.stock)
+    {
+        file.ignore();
+        getline(file, p.name);
+        getline(file, p.category);
+        products.push_back(p);
+    }
+    file.close();
+}
+void saveProducts()
+{
+    ofstream file("products.txt");
+    for (const auto &p : products)
+    {
+        file << p.id << " " << p.price << " " << p.stock << "\n"
+             << p.name << "\n" << p.category << "\n";
+    }
+    file.close();
+}
+void viewProducts()
+{
+    cout << "\nAvailable Products:\n";
+    cout << "ID\tName\t\tCategory\tPrice\tStock\n";
+    cout << "---------------------------------------------------\n";
+    for (const auto &p : products)
+    {
+        cout << p.id << "\t" << p.name << "\t" << p.category << "\t"
+             << fixed << setprecision(2) << p.price << "\t" << p.stock << endl;
+    }
+}
+
+
+void searchProduct()
+{
+    int choice;
+    cout << "Search by: 1. ID  2. Category\n";
+    cout << "Enter choice: ";
+    cin >> choice;
+
+    if (choice == 1)
+    {
+        int id;
+        cout << "Enter Product ID: ";
+        cin >> id;
+
+        for (const auto &p : products)
+        {
+            if (p.id == id)
+            {
+                cout << "Product Found: " << p.name << " | Price: $" << p.price
+                     << " | Stock: " << p.stock << endl;
+                return;
+            }
+        }
+        cout << "Product not found.\n";
+    }
+     else if (choice == 2)
+    {
+        string category;
+        cout << "Enter Category: ";
+        cin.ignore();
+        getline(cin, category);
+
+        bool found = false;
+        for (const auto &p : products)
+        {
+            if (p.category == category)
+            {
+                cout << "ID: " << p.id << " | Name: " << p.name
+                     << " | Price: $" << p.price << " | Stock: " << p.stock << endl;
+                found = true;
+            }
+        }
+        if (!found) cout << "No products found in this category.\n";
+    }
+    else
+    {
+        cout << "Invalid choice.\n";
+    }
+}
+
+
+void addToCart(vector<Sale> &cart)
+{
+    int id, quantity;
+    cout << "Enter Product ID: ";
+    cin >> id;
+
+    for (auto &p : products)
+    {
+        if (p.id == id)
+        {
+            cout << "Enter Quantity: ";
+            cin >> quantity;
+
+            if (quantity > p.stock)
+            {
+                cout << "Not enough stock available.\n";
+                return;
+            }
+            cart.push_back({p.id, p.name, quantity, p.price * quantity});
+            cout << "Added " << quantity << " of " << p.name << " to cart.\n";
+            return;
+        }
+    }
+    cout << "Product not found.\n";
+}
+void checkout(vector<Sale> &cart)
+{
+    if (cart.empty())
+    {
+        cout << "Cart is empty.\n";
+        return;
+    }
+
+    double total = 0;
+    cout << "\nCheckout Summary:\n";
+    cout << "ID\tName\t\tQuantity\tCost\n";
+    cout << "---------------------------------------\n";
+
+    for (const auto &item : cart)
+    {
+        cout << item.productId << "\t" << item.productName
+             << "\t" << item.quantity << "\t\t$" << fixed << setprecision(2) << item.totalCost << endl;
+        total += item.totalCost;
+        for (auto &p : products)
+        {
+            if (p.id == item.productId)
+            {
+                p.stock -= item.quantity;
+                break;
+            }
+        }
+        sales.push_back(item);
+    }
+
+    cout << "---------------------------------------\n";
+    cout << "Total: $" << total << endl;
+
+    cart.clear();
+}
+
+
+void adminModule()
+{
+    int choice;
+    do {
+        cout << "\nAdmin Module:\n";
+        cout << "1. Add Product\n";
+        cout << "2. Update Product\n";
+        cout << "3. Delete Product\n";
+        cout << "4. View Sales Report\n";
+        cout << "5. Back to Main Menu\n";
+        cout << "Enter choice: ";
+        cin >> choice;
+
+        if (choice == 1)
+        {
+            Product p;
+            cout << "Enter Product ID: ";
+            cin >> p.id;
+            cout << "Enter Name: ";
+            cin.ignore();
+            getline(cin, p.name);
+            cout << "Enter Category: ";
+            getline(cin, p.category);
+            cout << "Enter Price: ";
+            cin >> p.price;
+            cout << "Enter Stock: ";
+            cin >> p.stock;
+            products.push_back(p);
+            cout << "Product added successfully!\n";
+        }
+        else if (choice == 2)
+        {
+            int id;
+            cout << "Enter Product ID to update: ";
+            cin >> id;
+
+            for (auto &p : products)
+            {
+                if (p.id == id)
+                {
+                    cout << "Enter New Name: ";
+                    cin.ignore();
+                    getline(cin, p.name);
+                    cout << "Enter New Category: ";
+                    getline(cin, p.category);
+                    cout << "Enter New Price: ";
+                    cin >> p.price;
+                    cout << "Enter New Stock: ";
+                    cin >> p.stock;
+                    cout << "Product updated successfully!\n";
+                    break;
+                }
+            }
+        }
+        else if (choice == 3)
+        {
+            int id;
+            cout << "Enter Product ID to delete: ";
+            cin >> id;
+
+            for (auto it = products.begin(); it != products.end(); ++it) {
+                if (it->id == id)
+                {
+                    products.erase(it);
+                    cout << "Product deleted successfully!\n";
+                    break;
+                }
+            }
+        }
+        else if (choice == 4)
+        {
+            cout << "\nSales Report:\n";
+            cout << "Product ID\tName\tQuantity\tTotal Cost\n";
+            cout << "------------------------------------------------\n";
+            for (const auto &s : sales)
+            {
+                cout << s.productId << "\t" << s.productName
+                     << "\t" << s.quantity << "\t\t$" << fixed << setprecision(2) << s.totalCost << endl;
+            }
+        }
+    }
+    while (choice != 5);
+}
+int main()
+{
+    loadProducts();
+
+    int choice;
+    vector<Sale> cart;
+
+    do {
+        cout << "\nE-Commerce Store Management System\n";
+        cout << "1. View Products\n";
+        cout << "2. Search Product\n";
+        cout << "3. Add to Cart\n";
+        cout << "4. Checkout\n";
+        cout << "5. Admin Module\n";
+        cout << "6. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice)
+        {
+            case 1:
+                viewProducts();
+                break;
+            case 2:
+                searchProduct();
+                break;
+            case 3:
+                addToCart(cart);
+                break;
+            case 4:
+                checkout(cart);
+                break;
+            case 5:
+                adminModule();
+                break;
+            case 6:
+                saveProducts();
+                cout << "Exiting...\n";
+                break;
+            default:
+                cout << "Invalid choice! Try again.\n";
+        }
+    } while (choice != 6);
+
+    return 0;
+}

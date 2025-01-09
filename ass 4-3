@@ -1,0 +1,139 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <iomanip>
+
+using namespace std;
+
+const int MAX_ITEMS = 100;
+
+struct MenuItem
+{
+    int itemCode;
+    string name;
+    double price;
+    int quantityAvailable;
+};
+
+MenuItem menu[MAX_ITEMS];
+int itemCount = 0;
+
+void loadMenu()
+{
+    ifstream file("menu.txt");
+    if (file.is_open())
+    {
+        while (file >> menu[itemCount].itemCode)
+        {
+            file.ignore();
+            getline(file, menu[itemCount].name);
+            file >> menu[itemCount].price >> menu[itemCount].quantityAvailable;
+            itemCount++;
+        }
+        file.close();
+    }
+    else
+    {
+        cout << "Unable to open menu file." << endl;
+    }
+}
+
+void displayMenu()
+{
+    cout << "Menu:\n";
+    cout << left << setw(10) << "Item Code"
+         << setw(20) << "Name"
+         << setw(10) << "Price"
+         << setw(15) << "Available" << endl;
+    cout << string(55, '-') << endl;
+
+    for (int i = 0; i < itemCount; i++) {
+        cout << left << setw(10) << menu[i].itemCode
+             << setw(20) << menu[i].name
+             << setw(10) << fixed << setprecision(2) << menu[i].price
+             << setw(15) << menu[i].quantityAvailable << endl;
+    }
+}
+
+void placeOrder() {
+    int itemCode, quantity;
+    double totalBill = 0.0;
+
+    cout << "Enter Item Code: ";
+    cin >> itemCode;
+    cout << "Enter Quantity: ";
+    cin >> quantity;
+
+    for (int i = 0; i < itemCount; i++)
+    {
+        if (menu[i].itemCode == itemCode)
+        {
+            if (menu[i].quantityAvailable >= quantity)
+            {
+                totalBill += menu[i].price * quantity;
+                menu[i].quantityAvailable -= quantity;
+                cout << "Order placed successfully! Total Bill: $" << fixed << setprecision(2) << totalBill << endl;
+                return;
+            }
+            else
+            {
+                cout << "Insufficient quantity available!" << endl;
+                return;
+            }
+        }
+    }
+    cout << "Item not found!" << endl;
+}
+
+void saveMenu()
+{
+    ofstream file("menu.txt");
+    if (file.is_open())
+    {
+        for (int i = 0; i < itemCount; i++)
+        {
+            file << menu[i].itemCode << endl;
+            file << menu[i].name << endl;
+            file << menu[i].price << endl;
+            file << menu[i].quantityAvailable << endl;
+        }
+        file.close();
+    }
+    else
+    {
+        cout << "Unable to open menu file for writing." << endl;
+    }
+}
+
+int main()
+{
+    loadMenu();
+    int choice;
+
+    do {
+        cout << "\n1. View Menu\n2. Place Order\n3. Save Menu\n4. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice)
+        {
+            case 1:
+                displayMenu();
+                break;
+            case 2:
+                placeOrder();
+                break;
+            case 3:
+                saveMenu();
+                cout << "Menu saved successfully!" << endl;
+                break;
+            case 4:
+                cout << "Exiting the system. Goodbye!" << endl;
+                break;
+            default:
+                cout << "Invalid choice! Please try again." << endl;
+        }
+    } while (choice != 4);
+
+    return 0;
+}

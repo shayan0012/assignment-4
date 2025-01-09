@@ -1,0 +1,124 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+using namespace std;
+struct Employee
+{
+    int id;
+    string name;
+    string designation;
+    int totalHours;
+};
+vector<Employee> employees;
+void addEmployee()
+{
+    Employee newEmployee;
+    cout << "Enter Employee ID: ";
+    cin >> newEmployee.id;
+    cout << "Enter Name: ";
+    cin.ignore();
+    getline(cin, newEmployee.name);
+    cout << "Enter Designation: ";
+    getline(cin, newEmployee.designation);
+    newEmployee.totalHours = 0;
+    employees.push_back(newEmployee);
+    cout << "Employee added successfully!\n";
+}
+void updateWorkingHours()
+{
+    int id, hours;
+    cout << "Enter Employee ID: ";
+    cin >> id;
+
+    for (auto &emp : employees)
+    {
+        if (emp.id == id)
+        {
+            cout << "Enter Hours Worked: ";
+            cin >> hours;
+            emp.totalHours += hours;
+            cout << "Working hours updated successfully!\n";
+            return;
+        }
+    }
+    cout << "Employee not found!\n";
+}
+void displayReport()
+{
+    cout << "\nEmployee Productivity Report:\n";
+    cout << "ID\tName\t\tDesignation\tTotal Hours\n";
+    cout << "------------------------------------------------\n";
+    for (const auto &emp : employees)
+    {
+        cout << emp.id << "\t" << emp.name << "\t" << emp.designation << "\t" << emp.totalHours << endl;
+    }
+}
+void saveToFile()
+{
+    ofstream file("employees.txt");
+    for (const auto &emp : employees)
+    {
+        file << emp.id << '\n' << emp.name << '\n' << emp.designation << '\n' << emp.totalHours << '\n';
+    }
+    file.close();
+    cout << "Data saved successfully!\n";
+}
+void loadFromFile()
+{
+    ifstream file("employees.txt");
+    if (!file)
+    {
+        cout << "No saved data found.\n";
+        return;
+    }
+
+    employees.clear();
+    Employee emp;
+    while (file >> emp.id)
+    {
+        file.ignore();
+        getline(file, emp.name);
+        getline(file, emp.designation);
+        file >> emp.totalHours;
+        employees.push_back(emp);
+    }
+    file.close();
+    cout << "Data loaded successfully!\n";
+}
+int main()
+{
+    loadFromFile();
+
+    int choice;
+    do {
+        cout << "\nEmployee Work Tracking System\n";
+        cout << "1. Add Employee\n";
+        cout << "2. Update Working Hours\n";
+        cout << "3. Display Report\n";
+        cout << "4. Save and Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice)
+        {
+            case 1:
+                addEmployee();
+                break;
+            case 2:
+                updateWorkingHours();
+                break;
+            case 3:
+                displayReport();
+                break;
+            case 4:
+                saveToFile();
+                cout << "Exiting...\n";
+                break;
+            default:
+                cout << "Invalid choice! Try again.\n";
+        }
+    } while (choice != 4);
+
+    return 0;
+}
