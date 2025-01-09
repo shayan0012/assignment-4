@@ -6,7 +6,7 @@
 struct Book
 {
     int id;
-    std::string title;
+    std::string title;//uyruyrfuy
     std::string author;
     int quantity;
 };
